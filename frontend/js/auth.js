@@ -7,6 +7,8 @@ async function registrar() {
   const password = document.getElementById('password').value;
 
   console.log("Intentando registrar:", { nombre, email, password });
+  console.log("URL a la que hace fetch:", `${API_URL}/api/auth/register`);
+
 
   try {
     const res = await fetch(`${API_URL}/api/auth/register`, {
