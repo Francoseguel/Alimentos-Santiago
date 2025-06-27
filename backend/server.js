@@ -7,7 +7,8 @@ import ordersRoutes from './routes/orders.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Para poder usar __dirname en ES Modules
+
+// Para poder usar __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -25,7 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dishes', dishesRoutes);
 app.use('/api/orders', ordersRoutes);
 
-// Si alguien accede a '/', devolver index.html
+// Ruta para devolver index.html en /
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
