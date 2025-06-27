@@ -44,6 +44,8 @@ async function login() {
   const password = document.getElementById('password').value;
 
   console.log("Intentando login con:", { email, password });
+  console.log("URL a la que hace fetch:", `${API_URL}/api/auth/login`);
+
 
   try {
     const res = await fetch(`${API_URL}/api/auth/login`, {
