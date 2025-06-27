@@ -10,7 +10,6 @@ const SECRET_KEY = 'claveSuperSecreta123';
 // Registro de usuario
 router.post('/register', async (req, res) => {
   const { nombre, email, password } = req.body;
-
   if (!nombre || !email || !password)
     return res.status(400).json({ mensaje: 'Faltan campos' });
 
@@ -29,7 +28,6 @@ router.post('/register', async (req, res) => {
 // Login de usuario
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   const usuarios = await fs.readJSON(USERS_FILE).catch(() => []);
   const usuario = usuarios.find(u => u.email === email);
   if (!usuario)
@@ -40,11 +38,7 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ mensaje: 'Credenciales inválidas' });
 
   const token = jwt.sign(
-    {
-      email: usuario.email,
-      nombre: usuario.nombre,
-      admin: usuario.admin || false
-    },
+    { email: usuario.email, nombre: usuario.nombre, admin: usuario.admin || false },
     SECRET_KEY,
     { expiresIn: '1h' }
   );
