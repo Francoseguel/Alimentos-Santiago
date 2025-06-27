@@ -1,12 +1,12 @@
-// frontend/js/auth.js
-
-const API_URL = 'https://alimentos-santiago.onrender.com';  // Cambia por tu URL de Render si no es esta
+const API_URL = 'https://alimentos-santiago.onrender.com';
 
 // Función para registrar usuario
 async function registrar() {
   const nombre = document.getElementById('nombre').value;
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
+
+  console.log("Intentando registrar:", { nombre, email, password });
 
   try {
     const res = await fetch(`${API_URL}/api/auth/register`, {
@@ -17,18 +17,21 @@ async function registrar() {
       body: JSON.stringify({ nombre, email, password })
     });
 
+    console.log("Respuesta del backend (register):", res);
+
     if (!res.ok) {
-      // Intenta leer el error del backend
       const errorData = await res.json();
+      console.error("Error desde backend (register):", errorData);
       alert("Error en registro: " + errorData.mensaje);
       return;
     }
 
     const data = await res.json();
+    console.log("Registro exitoso:", data);
     alert(data.mensaje || "Registro exitoso, ahora inicia sesión");
     window.location.href = "login.html";
   } catch (error) {
-    console.error("Error en registro:", error);
+    console.error("Error en fetch (register):", error);
     alert("No se pudo conectar al servidor: " + error);
   }
 }
@@ -37,6 +40,8 @@ async function registrar() {
 async function login() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
+
+  console.log("Intentando login con:", { email, password });
 
   try {
     const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -47,18 +52,22 @@ async function login() {
       body: JSON.stringify({ email, password })
     });
 
+    console.log("Respuesta del backend (login):", res);
+
     if (!res.ok) {
       const errorData = await res.json();
+      console.error("Error desde backend (login):", errorData);
       alert("Error al iniciar sesión: " + errorData.mensaje);
       return;
     }
 
     const data = await res.json();
+    console.log("Login exitoso:", data);
     localStorage.setItem('token', data.token);
     alert("Bienvenido " + data.nombre);
-    window.location.href = "home.html";  // O donde quieras redirigir tras login
+    window.location.href = "home.html";
   } catch (error) {
-    console.error("Error en login:", error);
+    console.error("Error en fetch (login):", error);
     alert("No se pudo conectar al servidor: " + error);
   }
 }
