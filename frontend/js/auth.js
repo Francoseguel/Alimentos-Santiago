@@ -1,14 +1,17 @@
-const API_URL = 'https://alimentos-santiago.onrender.com';
+// Definimos API_URL como global para que siempre esté
+window.API_URL = 'https://alimentos-santiago.onrender.com';
+
+console.log("API_URL es:", window.API_URL);
 
 async function login() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
   console.log("Intentando login con:", { email, password });
-  console.log("URL a la que hace fetch:", `${API_URL}/api/auth/login`);
+  console.log("URL a la que hace fetch:", `${window.API_URL}/api/auth/login`);
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/login`, {
+    const res = await fetch(`${window.API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -44,10 +47,10 @@ async function registrar() {
   const password = document.getElementById('password').value;
 
   console.log("Intentando registrar:", { nombre, email, password });
-  console.log("URL a la que hace fetch:", `${API_URL}/api/auth/register`);
+  console.log("URL a la que hace fetch:", `${window.API_URL}/api/auth/register`);
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/register`, {
+    const res = await fetch(`${window.API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre, email, password })
@@ -74,4 +77,10 @@ async function registrar() {
     console.error("Error en fetch (register):", error);
     alert("No se pudo conectar al servidor: " + error);
   }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  // Recarga limpia
+  location.href = 'index.html';
 }
