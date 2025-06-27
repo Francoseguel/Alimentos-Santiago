@@ -4,10 +4,10 @@ FROM node:20
 # Crea carpeta de trabajo
 WORKDIR /app
 
-# Copia solo package.json primero para cache
+# Copia solo package.json y package-lock.json primero (si tienes)
 COPY backend/package*.json ./backend/
 
-# Instala dependencias
+# Instala dependencias dentro del contenedor
 WORKDIR /app/backend
 RUN npm install
 
@@ -15,8 +15,8 @@ RUN npm install
 WORKDIR /app
 COPY . .
 
-# Expone puerto
+# Expone el puerto (Render asigna process.env.PORT)
 EXPOSE 10000
 
-# Comando para arrancar backend
+# Arranca el backend
 CMD ["node", "backend/server.js"]
