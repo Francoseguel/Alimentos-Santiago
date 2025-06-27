@@ -11,7 +11,7 @@ COPY . .
 WORKDIR /app/backend
 RUN npm install
 
-# Expone el puerto (ajústalo si usas otro)
+# Expone el puerto que Render asigna (usualmente process.env.PORT)
 EXPOSE 10000
 
 # Comando para arrancar tu backend
