@@ -1,68 +1,64 @@
-const API_URL = 'https://alimentos-santiago.onrender.com';
+// frontend/js/auth.js
 
-document.addEventListener('DOMContentLoaded', () => {
-  const loginForm = document.getElementById('loginForm');
-  const registroForm = document.getElementById('registroForm');
+const API_URL = 'https://alimentos-santiago.onrender.com';  // Cambia por tu URL de Render si no es esta
 
-  // === LOGIN ===
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+// Función para registrar usuario
+async function registrar() {
+  const nombre = document.getElementById('nombre').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      try {
-        const res = await fetch(`${API_URL}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          localStorage.setItem('token', data.token);
-          alert(`Bienvenido, ${data.nombre}`);
-          window.location.href = 'home.html';
-        } else {
-          alert(data.mensaje || 'Error al iniciar sesión');
-        }
-      } catch (error) {
-        console.error('Error en login:', error);
-        alert('No se pudo conectar al servidor');
-      }
+  try {
+    const res = await fetch(`${API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ nombre, email, password })
     });
+
+    if (!res.ok) {
+      // Intenta leer el error del backend
+      const errorData = await res.json();
+      alert("Error en registro: " + errorData.mensaje);
+      return;
+    }
+
+    const data = await res.json();
+    alert(data.mensaje || "Registro exitoso, ahora inicia sesión");
+    window.location.href = "login.html";
+  } catch (error) {
+    console.error("Error en registro:", error);
+    alert("No se pudo conectar al servidor: " + error);
   }
+}
 
-  // === REGISTRO ===
-  if (registroForm) {
-    registroForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+// Función para iniciar sesión
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
-      const nombre = document.getElementById('nombre').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      try {
-        const res = await fetch(`${API_URL}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombre, email, password })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          alert('✅ Registro exitoso. Ahora puedes iniciar sesión.');
-          window.location.href = 'login.html';
-        } else {
-          alert(data.mensaje || '❌ Error en el registro');
-        }
-      } catch (error) {
-        console.error('Error en registro:', error);
-        alert('No se pudo conectar al servidor');
-      }
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
     });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      alert("Error al iniciar sesión: " + errorData.mensaje);
+      return;
+    }
+
+    const data = await res.json();
+    localStorage.setItem('token', data.token);
+    alert("Bienvenido " + data.nombre);
+    window.location.href = "home.html";  // O donde quieras redirigir tras login
+  } catch (error) {
+    console.error("Error en login:", error);
+    alert("No se pudo conectar al servidor: " + error);
   }
-});
+}
