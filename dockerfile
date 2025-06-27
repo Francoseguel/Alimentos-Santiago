@@ -12,7 +12,7 @@ WORKDIR /app/backend
 RUN npm install
 
 # Expone el puerto (ajústalo si usas otro)
-EXPOSE 3000
+EXPOSE 10000
 
 # Comando para arrancar tu backend
 CMD ["node", "server.js"]
