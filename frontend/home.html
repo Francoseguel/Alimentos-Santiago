@@ -1,0 +1,55 @@
+<!-- home.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inicio Usuario - Alimentos Santiago</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>Bienvenido a tu cuenta</header>
+  <div class="container">
+    <p id="bienvenida"></p>
+
+    <div id="menuCliente" style="display: none;">
+      <h3>Cliente</h3>
+      <button onclick="window.location.href='menu.html'">📋 Ver Menú</button><br><br>
+      <button onclick="window.location.href='cuenta.html'">👤 Mi Cuenta</button><br><br>
+    </div>
+
+    <div id="menuAdmin" style="display: none;">
+      <h3>Administrador</h3>
+      <button onclick="window.location.href='admin.html'">⚙️ Panel de Administración</button><br><br>
+    </div>
+
+    <button onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Debes iniciar sesión.");
+      window.location.href = "login.html";
+    } else {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        document.getElementById('bienvenida').innerText = `Hola, ${payload.nombre} (${payload.email})`;
+
+        if (payload.admin) {
+          document.getElementById('menuAdmin').style.display = 'block';
+        } else {
+          document.getElementById('menuCliente').style.display = 'block';
+        }
+      } catch (error) {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+      }
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem('token');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

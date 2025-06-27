@@ -1,0 +1,32 @@
+<!-- cuenta.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Cuenta - Alimentos Santiago</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>Mi Cuenta</header>
+  <div class="container">
+    <p><strong>Nombre:</strong> <span id="nombre"></span></p>
+    <p><strong>Email:</strong> <span id="email"></span></p>
+    <p><strong>Saldo actual:</strong> $<span id="saldo"></span></p>
+
+    <h2>Historial de pedidos</h2>
+    <table border="1" style="width: 100%; margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Tipo de entrega</th>
+          <th>Platos</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tablaPedidos"></tbody>
+    </table>
+  </div>
+  <script src="js/cuenta.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel Admin - Alimentos Santiago</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>Panel de Administración</header>
+  <div class="container">
+    <h2>Agregar / Editar Plato</h2>
+    <form id="platoForm">
+      <input type="hidden" id="id">
+      <input type="text" id="nombre" placeholder="Nombre del plato" required><br>
+      <input type="text" id="descripcion" placeholder="Descripción" required><br>
+      <input type="number" id="precio" placeholder="Precio" required><br>
+      <label>
+        <input type="checkbox" id="disponible"> Disponible
+      </label><br><br>
+      <button type="submit">Guardar</button>
+    </form>
+
+    <h2>Lista de Platos</h2>
+    <table border="1" style="width: 100%; margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Precio</th>
+          <th>Disponible</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaPlatos"></tbody>
+    </table>
+  </div>
+  <script src="js/admin.js"></script>
+</body>
+</html>

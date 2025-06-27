@@ -1,0 +1,31 @@
+<!-- menu.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Menú - Alimentos Santiago</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>Menú del Cliente</header>
+  <div class="container">
+    <h2>Platos disponibles</h2>
+    <div class="card-grid" id="menu"></div>
+    <div id="carrito">
+      <h3>🛒 Carrito</h3>
+      <ul id="carritoLista"></ul>
+      <label>Tipo de entrega:
+        <select id="tipoEntrega">
+          <option value="domicilio">Domicilio</option>
+          <option value="retiro">Retiro en local</option>
+        </select>
+      </label><br><br>
+      <label>Fecha y hora:
+        <input type="datetime-local" id="fechaHora" required>
+      </label><br><br>
+      <button id="realizarPedido">Realizar pedido</button>
+    </div>
+  </div>
+  <script src="js/menu.js"></script>
+</body>
+</html>
