@@ -1,41 +1,59 @@
-console.log("cuenta.js cargado ✅");
+import express from 'express';
+import { supabase } from '../supabaseClient.js';
 
-async function cargarPedidos() {
-  const user_id = localStorage.getItem("user_id");
-  if (!user_id) {
-    alert("Debes iniciar sesión.");
-    window.location.href = "login.html";
-    return;
+const router = express.Router();
+
+// Crear pedido
+router.post('/', async (req, res) => {
+  const { user_id, dish_id, cantidad } = req.body;
+
+  if (!user_id || !dish_id || !cantidad) {
+    return res.status(400).json({ mensaje: 'Faltan campos' });
   }
 
-  try {
-    const res = await fetch(`${API_URL}/api/orders/user/${user_id}`);
-    if (!res.ok) {
-      alert("No se pudo cargar el historial de pedidos.");
-      return;
-    }
+  const { error } = await supabase
+    .from('orders')
+    .insert([{ user_id, dish_id, cantidad, fecha: new Date().toISOString() }]);
 
-    const pedidos = await res.json();
-    console.log("Pedidos recibidos:", pedidos);
-
-    const cuerpo = document.getElementById("cuerpoTabla");
-    cuerpo.innerHTML = '';
-
-    pedidos.forEach(pedido => {
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${pedido.id}</td>
-        <td>${pedido.dish_id}</td>
-        <td>${pedido.cantidad}</td>
-        <td>${new Date(pedido.fecha).toLocaleString()}</td>
-      `;
-      cuerpo.appendChild(fila);
-    });
-  } catch (error) {
-    console.error("Error al cargar pedidos:", error);
-    alert("Error al conectar con el servidor.");
+  if (error) {
+    console.error("Error al crear pedido:", error);
+    return res.status(500).json({ mensaje: 'Error al crear pedido' });
   }
-}
 
-// Ejecuta al cargar la página
-cargarPedidos();
+  res.json({ mensaje: 'Pedido creado correctamente' });
+});
+
+// Obtener pedidos de un usuario
+router.get('/user/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', user_id)
+    .order('fecha', { ascending: false });
+
+  if (error) {
+    console.error("Error al obtener pedidos del usuario:", error);
+    return res.status(500).json({ mensaje: 'Error al obtener pedidos' });
+  }
+
+  res.json(data);
+});
+
+// (Opcional) Obtener todos los pedidos (admin)
+router.get('/', async (req, res) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('fecha', { ascending: false });
+
+  if (error) {
+    console.error("Error al obtener todos los pedidos:", error);
+    return res.status(500).json({ mensaje: 'Error al obtener pedidos' });
+  }
+
+  res.json(data);
+});
+
+export default router;
