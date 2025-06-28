@@ -1,41 +1,9 @@
-const API_URL = 'https://alimentos-santiago.onrender.com';
-const token = localStorage.getItem('token');
+const API_URL = 'https://alimentos-santiago.onrender.com/api/dishes';
 
-if (!token) {
-  alert('Debes iniciar sesión como administrador.');
-  window.location.href = 'login.html';
-}
+document.addEventListener('DOMContentLoaded', cargarPlatos);
 
-const payload = JSON.parse(atob(token.split('.')[1]));
-if (!payload.admin) {
-  alert('Acceso denegado: No eres administrador.');
-  window.location.href = 'login.html';
-}
-
-async function cargarPlatos() {
-  const res = await fetch(`${API_URL}/api/dishes`);
-  const platos = await res.json();
-
-  const tbody = document.getElementById('tablaPlatos');
-  tbody.innerHTML = '';
-
-  platos.forEach(plato => {
-    const fila = document.createElement('tr');
-    fila.innerHTML = `
-      <td>${plato.id}</td>
-      <td>${plato.nombre}</td>
-      <td>$${plato.precio}</td>
-      <td>${plato.disponible ? '✔️' : '❌'}</td>
-      <td>
-        <button onclick="editarPlato(${plato.id})">✏️</button>
-        <button onclick="eliminarPlato(${plato.id})">🗑️</button>
-      </td>
-    `;
-    tbody.appendChild(fila);
-  });
-}
-
-document.getElementById('platoForm').addEventListener('submit', async (e) => {
+const form = document.getElementById('platoForm');
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const id = document.getElementById('id').value;
@@ -44,60 +12,80 @@ document.getElementById('platoForm').addEventListener('submit', async (e) => {
   const precio = parseInt(document.getElementById('precio').value);
   const disponible = document.getElementById('disponible').checked;
 
-  const metodo = id ? 'PUT' : 'POST';
-  const endpoint = id ? `${API_URL}/api/dishes/${id}` : `${API_URL}/api/dishes`;
+  try {
+    let res;
+    if (id) {
+      // Editar
+      res = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, descripcion, precio, disponible })
+      });
+    } else {
+      // Agregar
+      res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, descripcion, precio, disponible })
+      });
+    }
 
-  const res = await fetch(endpoint, {
-    method: metodo,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({ nombre, descripcion, precio, disponible })
-  });
-
-  const data = await res.json();
-  if (res.ok) {
-    alert(id ? '✅ Plato actualizado' : '✅ Plato agregado');
-    document.getElementById('platoForm').reset();
+    const data = await res.json();
+    alert(data.mensaje);
+    form.reset();
+    document.getElementById('id').value = '';
     cargarPlatos();
-  } else {
-    alert(data.mensaje || '❌ Error al guardar el plato');
+  } catch (error) {
+    console.error('Error al guardar plato:', error);
+    alert('Error al guardar plato');
   }
 });
 
-async function editarPlato(id) {
-  const res = await fetch(`${API_URL}/api/dishes`);
-  const platos = await res.json();
-  const plato = platos.find(p => p.id === id);
+async function cargarPlatos() {
+  try {
+    const res = await fetch(API_URL);
+    const platos = await res.json();
 
+    const tabla = document.getElementById('tablaPlatos');
+    tabla.innerHTML = '';
+
+    platos.forEach(plato => {
+      const fila = `
+        <tr>
+          <td>${plato.id}</td>
+          <td>${plato.nombre}</td>
+          <td>$${plato.precio}</td>
+          <td>${plato.disponible ? '✔️' : '❌'}</td>
+          <td>
+            <button onclick='editarPlato(${JSON.stringify(plato)})'>✏️</button>
+            <button onclick='eliminarPlato("${plato.id}")'>🗑️</button>
+          </td>
+        </tr>`;
+      tabla.innerHTML += fila;
+    });
+  } catch (error) {
+    console.error('Error al cargar platos:', error);
+  }
+}
+
+function editarPlato(plato) {
   document.getElementById('id').value = plato.id;
   document.getElementById('nombre').value = plato.nombre;
   document.getElementById('descripcion').value = plato.descripcion;
   document.getElementById('precio').value = plato.precio;
-  document.getElementById('disponible').checked = plato.disponible || false;
+  document.getElementById('disponible').checked = plato.disponible;
 }
 
 async function eliminarPlato(id) {
-  if (!confirm('¿Eliminar este plato?')) return;
+  if (!confirm('¿Estás seguro de eliminar este plato?')) return;
 
-  const res = await fetch(`${API_URL}/api/dishes/${id}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-
-  const data = await res.json();
-  if (res.ok) {
-    alert('🗑️ Plato eliminado');
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    alert(data.mensaje);
     cargarPlatos();
-  } else {
-    alert(data.mensaje || '❌ Error al eliminar');
+  } catch (error) {
+    console.error('Error al eliminar plato:', error);
+    alert('Error al eliminar plato');
   }
 }
-
-function cerrarSesion() {
-  localStorage.removeItem('token');
-  window.location.href = 'index.html';
-}
-
-cargarPlatos();
