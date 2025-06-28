@@ -1,4 +1,3 @@
-<!-- register.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,15 +8,15 @@
 <body>
   <header>Registrarse</header>
   <div class="container">
-    <form id="registroForm">
+    <form onsubmit="registrar(); return false;">
       <input type="text" id="nombre" placeholder="Nombre completo" required><br>
       <input type="email" id="email" placeholder="Correo electrónico" required><br>
       <input type="password" id="password" placeholder="Contraseña" required><br>
-      <button onclick="registrar()">Registrarse</button>
+      <button type="submit">Registrarse</button>
     </form>
     <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
   </div>
+  <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/auth.js?v=1.0"></script>
 </body>
 </html>
