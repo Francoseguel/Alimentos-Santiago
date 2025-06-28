@@ -5,51 +5,41 @@ const router = express.Router();
 
 // Crear pedido
 router.post('/', async (req, res) => {
-  const { user_id, dish_id, cantidad } = req.body;
+  const { email, platos, tipoEntrega, fechaHora } = req.body;
 
-  if (!user_id || !dish_id || !cantidad) {
-    return res.status(400).json({ mensaje: 'Faltan campos' });
+  if (!email || !platos || platos.length === 0) {
+    return res.status(400).json({ mensaje: 'Faltan datos del pedido' });
   }
 
-  const { error } = await supabase
-    .from('orders')
-    .insert([{ user_id, dish_id, cantidad, fecha: new Date().toISOString() }]);
+  const { error } = await supabase.from('orders').insert([
+    {
+      email,
+      platos: JSON.stringify(platos),  // Guardamos platos como JSON string
+      tipoEntrega,
+      fechaHora
+    }
+  ]);
 
   if (error) {
     console.error("Error al crear pedido:", error);
     return res.status(500).json({ mensaje: 'Error al crear pedido' });
   }
 
-  res.json({ mensaje: 'Pedido creado correctamente' });
+  res.json({ mensaje: 'Pedido guardado correctamente' });
 });
 
 // Obtener pedidos de un usuario
-router.get('/user/:user_id', async (req, res) => {
-  const { user_id } = req.params;
+router.get('/:email', async (req, res) => {
+  const { email } = req.params;
 
   const { data, error } = await supabase
     .from('orders')
     .select('*')
-    .eq('user_id', user_id)
-    .order('fecha', { ascending: false });
+    .eq('email', email)
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error al obtener pedidos del usuario:", error);
-    return res.status(500).json({ mensaje: 'Error al obtener pedidos' });
-  }
-
-  res.json(data);
-});
-
-// (Opcional) Obtener todos los pedidos (admin)
-router.get('/', async (req, res) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .order('fecha', { ascending: false });
-
-  if (error) {
-    console.error("Error al obtener todos los pedidos:", error);
+    console.error("Error al obtener pedidos:", error);
     return res.status(500).json({ mensaje: 'Error al obtener pedidos' });
   }
 
