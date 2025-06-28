@@ -1,60 +1,61 @@
-window.API_URL = 'https://alimentos-santiago.onrender.com'
+// Cambia por tu dominio de Render
+const API_URL = 'https://alimentos-santiago.onrender.com';
 
-async function login() {
-  const email = document.getElementById('email').value
-  const password = document.getElementById('password').value
+async function register() {
+  const nombre = document.getElementById('nombre').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
-  try {
-    const res = await fetch(`${window.API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
-
-    const data = await res.json()
-
-    if (res.ok) {
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user_id', data.id) // guardar id del usuario
-      alert('Login exitoso')
-      window.location.href = 'home.html'
-    } else {
-      alert(data.mensaje || 'Error al iniciar sesión')
-    }
-  } catch (error) {
-    console.error('Error en login:', error)
-    alert('No se pudo conectar al servidor')
-  }
-}
-
-async function registrar() {
-  const nombre = document.getElementById('nombre').value
-  const email = document.getElementById('email').value
-  const password = document.getElementById('password').value
+  console.log('Intentando registrar:', { nombre, email, password });
 
   try {
-    const res = await fetch(`${window.API_URL}/api/auth/register`, {
+    const res = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre, email, password })
-    })
+    });
 
-    const data = await res.json()
+    const data = await res.json();
+    console.log('Respuesta register:', data);
 
     if (res.ok) {
-      alert('Registro exitoso, ahora puedes iniciar sesión')
-      window.location.href = 'login.html'
+      alert(data.mensaje || 'Registro exitoso');
+      window.location.href = 'login.html';
     } else {
-      alert(data.mensaje || 'Error al registrarse')
+      alert(data.mensaje || 'Error en registro');
     }
   } catch (error) {
-    console.error('Error en registro:', error)
-    alert('No se pudo conectar al servidor')
+    console.error('Error en fetch (register):', error);
+    alert('No se pudo conectar al servidor');
   }
 }
 
-function cerrarSesion() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user_id')
-  location.href = 'index.html'
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  console.log('Intentando login con:', { email, password });
+  console.log('URL a la que hace fetch:', `${API_URL}/api/auth/login`);
+
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    console.log('Respuesta login:', data);
+
+    if (res.ok) {
+      localStorage.setItem('token', data.token);
+      alert('Login exitoso');
+      window.location.href = 'home.html';
+    } else {
+      alert(data.mensaje || 'Error en login');
+    }
+  } catch (error) {
+    console.error('Error en fetch (login):', error);
+    alert('No se pudo conectar al servidor');
+  }
 }
