@@ -1,80 +1,94 @@
-console.log("menu.js cargado ✅");
+const API_URL = 'https://alimentos-santiago.onrender.com/api';
 
-const API_URL = "https://alimentos-santiago.onrender.com/api";
-let carrito = [];
+let carrito = []; // platos agregados al carrito
 
-// Mostrar platos
+document.addEventListener('DOMContentLoaded', cargarPlatos);
+
 async function cargarPlatos() {
   try {
     const res = await fetch(`${API_URL}/dishes`);
     const platos = await res.json();
-    const contenedor = document.getElementById("platos");
-    contenedor.innerHTML = "";
+
+    const contenedor = document.getElementById('platos');
+    contenedor.innerHTML = '';
 
     platos.forEach(plato => {
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = `
+      const card = document.createElement('div');
+      card.className = 'plato';
+      card.innerHTML = `
         <h3>${plato.nombre}</h3>
         <p>${plato.descripcion}</p>
         <p><strong>Precio:</strong> $${plato.precio}</p>
         <button onclick='agregarAlCarrito(${JSON.stringify(plato)})'>Agregar al carrito</button>
       `;
-      contenedor.appendChild(div);
+      contenedor.appendChild(card);
     });
   } catch (error) {
-    console.error("Error al cargar platos:", error);
+    console.error('Error al cargar platos:', error);
   }
 }
 
-cargarPlatos();
-
-// Agregar al carrito
 function agregarAlCarrito(plato) {
-  console.log("Agregando al carrito:", plato);
   carrito.push(plato);
-  alert(`Plato "${plato.nombre}" agregado al carrito`);
+  renderCarrito();
 }
 
-// Enviar pedido
-async function realizarPedido() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("Debes iniciar sesión.");
-    return;
-  }
+function renderCarrito() {
+  const contenedor = document.getElementById('carrito');
+  contenedor.innerHTML = '';
 
   if (carrito.length === 0) {
-    alert("El carrito está vacío.");
+    contenedor.innerHTML = '<p>El carrito está vacío.</p>';
     return;
   }
 
-  const payload = JSON.parse(atob(token.split('.')[1]));
+  carrito.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.innerHTML = `${item.nombre} - $${item.precio} 
+      <button onclick="quitarDelCarrito(${index})">Quitar</button>`;
+    contenedor.appendChild(div);
+  });
+}
 
-  const tipoEntrega = document.getElementById("tipoEntrega").value;
-  const fechaHora = document.getElementById("fechaHora").value;
+function quitarDelCarrito(index) {
+  carrito.splice(index, 1);
+  renderCarrito();
+}
 
-  const datos = {
-    email: payload.email,
-    platos: carrito,
-    tipoEntrega,
-    fechaHora
-  };
+async function realizarPedido() {
+  const tipoEntrega = document.getElementById('tipoEntrega').value;
+  const fechaHora = document.getElementById('fechaHora').value;
 
-  console.log("Enviando pedido:", datos);
+  if (carrito.length === 0) {
+    alert('Agrega al menos un plato al carrito.');
+    return;
+  }
+  if (!fechaHora) {
+    alert('Selecciona fecha y hora.');
+    return;
+  }
 
   try {
     const res = await fetch(`${API_URL}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datos)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platos: carrito.map(p => p.id),
+        tipoEntrega,
+        fechaHora
+      })
     });
-    const respuesta = await res.json();
-    alert(respuesta.mensaje || "Pedido realizado con éxito");
+    const data = await res.json();
 
-    carrito = []; // Limpiar carrito
+    if (res.ok) {
+      alert('Pedido creado con éxito.');
+      carrito = [];
+      renderCarrito();
+    } else {
+      alert(data.mensaje || 'Error al crear pedido');
+    }
   } catch (error) {
-    console.error("Error al realizar pedido:", error);
-    alert("Error al enviar pedido");
+    console.error('Error al crear pedido:', error);
+    alert('Error al crear pedido');
   }
 }
