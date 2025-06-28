@@ -1,16 +1,37 @@
-<h2>Platos disponibles</h2>
-<div id="listaPlatos"></div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Menú del Cliente</title>
+  <link rel="stylesheet" href="css/style.css"> <!-- Tu CSS -->
+</head>
+<body>
+  <header>Menú del Cliente</header>
 
-<h3>Carrito</h3>
-<div id="carrito"></div>
+  <main class="container">
+    <h2>Platos disponibles</h2>
+    <div id="listaPlatos"></div>
 
-<select id="tipoEntrega">
-  <option value="Domicilio">Domicilio</option>
-  <option value="Retiro local">Retiro local</option>
-</select><br>
+    <h3>Carrito</h3>
+    <div id="carrito"></div>
 
-<input type="datetime-local" id="fechaHora"><br>
+    <div class="pedido-form">
+      <label>Tipo de entrega:
+        <select id="tipoEntrega">
+          <option value="Domicilio">Domicilio</option>
+          <option value="Retiro local">Retiro local</option>
+        </select>
+      </label>
+      <br>
+      <label>Fecha y hora:
+        <input type="datetime-local" id="fechaHora">
+      </label>
+      <br>
+      <div id="datosDomicilio"></div> <!-- Aquí se mostrarán dirección y teléfono si elige domicilio -->
+      <button id="realizarPedidoBtn">Realizar pedido</button>
+    </div>
+  </main>
 
-<div id="datosDomicilio"></div>
-
-<button id="realizarPedidoBtn">Realizar pedido</button>
+  <script src="js/menu.js"></script>
+</body>
+</html>
