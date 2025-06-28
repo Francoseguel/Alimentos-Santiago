@@ -1,86 +1,83 @@
-// Definimos API_URL como global para que siempre esté
-window.API_URL = 'https://alimentos-santiago.onrender.com';
+import express from 'express'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import { supabase } from '../supabaseClient.js'
 
-console.log("API_URL es:", window.API_URL);
+const router = express.Router()
+const SECRET_KEY = 'claveSuperSecreta123' // idealmente usar variable de entorno
 
-async function login() {
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
+// =========================
+// REGISTRO
+// =========================
+router.post('/register', async (req, res) => {
+  const { nombre, email, password } = req.body
 
-  console.log("Intentando login con:", { email, password });
-  console.log("URL a la que hace fetch:", `${window.API_URL}/api/auth/login`);
+  if (!nombre || !email || !password)
+    return res.status(400).json({ mensaje: 'Faltan campos' })
 
-  try {
-    const res = await fetch(`${window.API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+  // Verificamos si el usuario ya existe
+  const { data: existe, error: errorBuscar } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single()
 
-    const text = await res.text();
-    console.log("Respuesta raw:", text);
-
-    let data;
-    try {
-      data = JSON.parse(text);
-      console.log("Respuesta parseada:", data);
-    } catch (e) {
-      console.error("No es JSON válido:", e);
-    }
-
-    if (res.ok) {
-      localStorage.setItem('token', data.token);
-      alert('Login exitoso');
-      window.location.href = 'home.html';
-    } else {
-      alert((data && data.mensaje) || "Error al iniciar sesión");
-    }
-  } catch (error) {
-    console.error("Error en fetch (login):", error);
-    alert("No se pudo conectar al servidor: " + error);
+  if (existe) {
+    return res.status(400).json({ mensaje: 'Usuario ya registrado' })
   }
-}
 
-async function registrar() {
-  const nombre = document.getElementById('nombre').value;
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
+  // Encriptamos contraseña
+  const hashedPassword = await bcrypt.hash(password, 10)
 
-  console.log("Intentando registrar:", { nombre, email, password });
-  console.log("URL a la que hace fetch:", `${window.API_URL}/api/auth/register`);
+  // Insertamos usuario en Supabase
+  const { error } = await supabase.from('users').insert([
+    { nombre, email, password: hashedPassword, saldo: 10000, admin: false }
+  ])
 
-  try {
-    const res = await fetch(`${window.API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, email, password })
-    });
-
-    const text = await res.text();
-    console.log("Respuesta raw:", text);
-
-    let data;
-    try {
-      data = JSON.parse(text);
-      console.log("Respuesta parseada:", data);
-    } catch (e) {
-      console.error("No es JSON válido:", e);
-    }
-
-    if (res.ok) {
-      alert('Registro exitoso, ahora puedes iniciar sesión');
-      window.location.href = 'login.html';
-    } else {
-      alert((data && data.mensaje) || "Error al registrarse");
-    }
-  } catch (error) {
-    console.error("Error en fetch (register):", error);
-    alert("No se pudo conectar al servidor: " + error);
+  if (error) {
+    console.error("Error insertando usuario:", error)
+    return res.status(500).json({ mensaje: 'Error al registrar usuario' })
   }
-}
 
-function cerrarSesion() {
-  localStorage.removeItem('token');
-  // Recarga limpia
-  location.href = 'index.html';
-}
+  res.json({ mensaje: 'Usuario registrado correctamente' })
+})
+
+
+// =========================
+// LOGIN
+// =========================
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body
+
+  // Buscamos usuario en Supabase
+  const { data: usuario, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (!usuario) {
+    return res.status(401).json({ mensaje: 'Credenciales inválidas' })
+  }
+
+  // Verificamos contraseña
+  const valido = await bcrypt.compare(password, usuario.password)
+  if (!valido) {
+    return res.status(401).json({ mensaje: 'Credenciales inválidas' })
+  }
+
+  // Generamos token
+  const token = jwt.sign(
+    {
+      email: usuario.email,
+      nombre: usuario.nombre,
+      admin: usuario.admin || false
+    },
+    SECRET_KEY,
+    { expiresIn: '1h' }
+  )
+
+  res.json({ token, nombre: usuario.nombre, admin: usuario.admin || false })
+})
+
+export default router
