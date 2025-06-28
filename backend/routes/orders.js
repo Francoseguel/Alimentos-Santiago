@@ -1,62 +1,41 @@
-import express from 'express'
-import { supabase } from '../supabaseClient.js'
+console.log("cuenta.js cargado ✅");
 
-const router = express.Router()
-
-// ==============================
-// Crear pedido
-// ==============================
-router.post('/', async (req, res) => {
-  const { user_id, dish_id, cantidad } = req.body
-
-  const { error } = await supabase
-    .from('orders')
-    .insert([{ user_id, dish_id, cantidad }])
-
-  if (error) {
-    console.error("Error al crear pedido:", error)
-    return res.status(500).json({ mensaje: 'Error al crear pedido' })
+async function cargarPedidos() {
+  const user_id = localStorage.getItem("user_id");
+  if (!user_id) {
+    alert("Debes iniciar sesión.");
+    window.location.href = "login.html";
+    return;
   }
 
-  res.json({ mensaje: 'Pedido creado correctamente' })
-})
+  try {
+    const res = await fetch(`${API_URL}/api/orders/user/${user_id}`);
+    if (!res.ok) {
+      alert("No se pudo cargar el historial de pedidos.");
+      return;
+    }
 
+    const pedidos = await res.json();
+    console.log("Pedidos recibidos:", pedidos);
 
-// ==============================
-// Obtener pedidos de un usuario
-// ==============================
-router.get('/user/:user_id', async (req, res) => {
-  const { user_id } = req.params
+    const cuerpo = document.getElementById("cuerpoTabla");
+    cuerpo.innerHTML = '';
 
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('user_id', user_id)
-    .order('fecha', { ascending: false })
-
-  if (error) {
-    console.error("Error al obtener pedidos del usuario:", error)
-    return res.status(500).json({ mensaje: 'Error al obtener pedidos' })
+    pedidos.forEach(pedido => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${pedido.id}</td>
+        <td>${pedido.dish_id}</td>
+        <td>${pedido.cantidad}</td>
+        <td>${new Date(pedido.fecha).toLocaleString()}</td>
+      `;
+      cuerpo.appendChild(fila);
+    });
+  } catch (error) {
+    console.error("Error al cargar pedidos:", error);
+    alert("Error al conectar con el servidor.");
   }
+}
 
-  res.json(data)
-})
-
-// ==============================
-// (Opcional) Obtener todos los pedidos (por ejemplo, para admin)
-// ==============================
-router.get('/', async (req, res) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .order('fecha', { ascending: false })
-
-  if (error) {
-    console.error("Error al obtener todos los pedidos:", error)
-    return res.status(500).json({ mensaje: 'Error al obtener pedidos' })
-  }
-
-  res.json(data)
-})
-
-export default router
+// Ejecuta al cargar la página
+cargarPedidos();

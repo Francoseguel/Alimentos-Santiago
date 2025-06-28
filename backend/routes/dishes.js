@@ -81,4 +81,19 @@ router.delete('/:id', async (req, res) => {
   res.json({ mensaje: 'Plato eliminado correctamente' })
 })
 
+router.get('/disponibles', async (req, res) => {
+  const { data, error } = await supabase
+    .from('dishes')
+    .select('*')
+    .eq('disponible', true)
+    .order('nombre', { ascending: true });
+
+  if (error) {
+    console.error("Error al obtener platos disponibles:", error);
+    return res.status(500).json({ mensaje: 'Error al obtener platos disponibles' });
+  }
+
+  res.json(data);
+});
+
 export default router
