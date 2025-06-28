@@ -4,21 +4,19 @@ FROM node:20
 # Crea carpeta de trabajo
 WORKDIR /app
 
-# Copia solo package.json y package-lock.json primero para instalar deps
+# Copia solo package.json primero para instalar deps
 COPY backend/package*.json ./backend/
 
-# Instala dependencias dentro del contenedor
+# Entra a backend y corre npm install (en Linux)
 WORKDIR /app/backend
 RUN npm install
 
-# Vuelve a carpeta raíz
+# Copia el resto del proyecto
 WORKDIR /app
-
-# Copia todo el resto del proyecto (incluye frontend, backend y data/)
 COPY . .
 
 # Expone el puerto que Render usará
 EXPOSE 10000
 
-# Comando para arrancar backend
+# Arranca backend
 CMD ["node", "backend/server.js"]
