@@ -1,57 +1,62 @@
-import express from 'express';
-import fs from 'fs-extra';
+import express from 'express'
+import { supabase } from '../supabaseClient.js'
 
-const router = express.Router();
-const ORDERS_FILE = './data/orders.json';
+const router = express.Router()
 
-// Crear un nuevo pedido
+// ==============================
+// Crear pedido
+// ==============================
 router.post('/', async (req, res) => {
-  const { email, platos, tipoEntrega, fechaHora } = req.body;
+  const { user_id, dish_id, cantidad } = req.body
 
-  if (!email || !platos || platos.length === 0)
-    return res.status(400).json({ mensaje: 'Datos incompletos' });
+  const { error } = await supabase
+    .from('orders')
+    .insert([{ user_id, dish_id, cantidad }])
 
-  const pedidos = await fs.readJSON(ORDERS_FILE).catch(() => []);
-  const nuevoPedido = {
-    id: pedidos.length + 1,
-    email,
-    platos,
-    tipoEntrega,
-    fechaHora,
-    estado: 'Pendiente'
-  };
+  if (error) {
+    console.error("Error al crear pedido:", error)
+    return res.status(500).json({ mensaje: 'Error al crear pedido' })
+  }
 
-  pedidos.push(nuevoPedido);
-  await fs.writeJSON(ORDERS_FILE, pedidos);
-  res.json({ mensaje: 'Pedido registrado', pedido: nuevoPedido });
-});
+  res.json({ mensaje: 'Pedido creado correctamente' })
+})
 
-// Obtener pedidos por cliente
-router.get('/:email', async (req, res) => {
-  const { email } = req.params;
-  const pedidos = await fs.readJSON(ORDERS_FILE).catch(() => []);
-  const resultado = pedidos.filter(p => p.email === email);
-  res.json(resultado);
-});
 
-// Obtener saldo y pedidos por cliente
-router.get('/cuenta/:email', async (req, res) => {
-  const { email } = req.params;
+// ==============================
+// Obtener pedidos de un usuario
+// ==============================
+router.get('/user/:user_id', async (req, res) => {
+  const { user_id } = req.params
 
-  const pedidos = await fs.readJSON('./data/orders.json').catch(() => []);
-  const usuarios = await fs.readJSON('./data/users.json').catch(() => []);
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', user_id)
+    .order('fecha', { ascending: false })
 
-  const usuario = usuarios.find(u => u.email === email);
-  if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  if (error) {
+    console.error("Error al obtener pedidos del usuario:", error)
+    return res.status(500).json({ mensaje: 'Error al obtener pedidos' })
+  }
 
-  const historial = pedidos.filter(p => p.email === email);
+  res.json(data)
+})
 
-  res.json({
-    nombre: usuario.nombre,
-    email: usuario.email,
-    saldo: usuario.saldo,
-    pedidos: historial
-  });
-});
+// ==============================
+// (Opcional) Obtener todos los pedidos (por ejemplo, para admin)
+// ==============================
+router.get('/', async (req, res) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('fecha', { ascending: false })
 
-export default router;
+  if (error) {
+    console.error("Error al obtener todos los pedidos:", error)
+    return res.status(500).json({ mensaje: 'Error al obtener pedidos' })
+  }
+
+  res.json(data)
+})
+
+export default router

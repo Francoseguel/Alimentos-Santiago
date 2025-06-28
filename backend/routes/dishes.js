@@ -1,63 +1,84 @@
-import express from 'express';
-import fs from 'fs-extra';
-import { verificarToken, soloAdmin } from '../middleware/auth.js';
+import express from 'express'
+import { supabase } from '../supabaseClient.js'
 
-const router = express.Router();
-const FILE = './data/dishes.json';
+const router = express.Router()
 
+// ==============================
 // Obtener todos los platos
+// ==============================
 router.get('/', async (req, res) => {
-  const platos = await fs.readJSON(FILE).catch(() => []);
-  res.json(platos);
-});
+  const { data, error } = await supabase
+    .from('dishes')
+    .select('*')
+    .order('nombre', { ascending: true })
 
-// Crear nuevo plato
-router.post('/', verificarToken, soloAdmin, async (req, res) => {
-  const { nombre, descripcion, precio, disponible } = req.body;
-  if (!nombre || !descripcion || !precio) {
-    return res.status(400).json({ mensaje: 'Campos incompletos' });
+  if (error) {
+    console.error("Error al obtener platos:", error)
+    return res.status(500).json({ mensaje: 'Error al obtener platos' })
   }
 
-  const platos = await fs.readJSON(FILE).catch(() => []);
-  const nuevo = {
-    id: platos.length ? platos[platos.length - 1].id + 1 : 1,
-    nombre,
-    descripcion,
-    precio,
-    disponible: disponible ?? true
-  };
+  res.json(data)
+})
 
-  platos.push(nuevo);
-  await fs.writeJSON(FILE, platos);
-  res.status(201).json(nuevo);
-});
 
-// Actualizar plato
-router.put('/:id', verificarToken, soloAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
-  const { nombre, descripcion, precio, disponible } = req.body;
 
-  const platos = await fs.readJSON(FILE).catch(() => []);
-  const index = platos.findIndex(p => p.id === id);
-  if (index === -1) {
-    return res.status(404).json({ mensaje: 'Plato no encontrado' });
+// ==============================
+// Agregar un plato
+// ==============================
+router.post('/', async (req, res) => {
+  const { nombre, descripcion, precio, disponible } = req.body
+
+  const { error } = await supabase.from('dishes').insert([
+    { nombre, descripcion, precio, disponible }
+  ])
+
+  if (error) {
+    console.error("Error al agregar plato:", error)
+    return res.status(500).json({ mensaje: 'Error al agregar plato' })
   }
 
-  platos[index] = { id, nombre, descripcion, precio, disponible: disponible ?? true };
-  await fs.writeJSON(FILE, platos);
-  res.json(platos[index]);
-});
+  res.json({ mensaje: 'Plato agregado correctamente' })
+})
 
-// Eliminar plato
-router.delete('/:id', verificarToken, soloAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
-  let platos = await fs.readJSON(FILE).catch(() => []);
-  const existe = platos.find(p => p.id === id);
-  if (!existe) return res.status(404).json({ mensaje: 'Plato no encontrado' });
 
-  platos = platos.filter(p => p.id !== id);
-  await fs.writeJSON(FILE, platos);
-  res.json({ mensaje: 'Plato eliminado' });
-});
+// ==============================
+// Editar un plato
+// ==============================
+router.put('/:id', async (req, res) => {
+  const { id } = req.params
+  const { nombre, descripcion, precio, disponible } = req.body
 
-export default router;
+  const { error } = await supabase
+    .from('dishes')
+    .update({ nombre, descripcion, precio, disponible })
+    .eq('id', id)
+
+  if (error) {
+    console.error("Error al editar plato:", error)
+    return res.status(500).json({ mensaje: 'Error al editar plato' })
+  }
+
+  res.json({ mensaje: 'Plato editado correctamente' })
+})
+
+
+// ==============================
+// Eliminar un plato
+// ==============================
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params
+
+  const { error } = await supabase
+    .from('dishes')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error("Error al eliminar plato:", error)
+    return res.status(500).json({ mensaje: 'Error al eliminar plato' })
+  }
+
+  res.json({ mensaje: 'Plato eliminado correctamente' })
+})
+
+export default router
